@@ -48,7 +48,7 @@ Zkopírujte šablonu a vyplňte hodnoty:
 Copy-Item Config.example.ps1 Config.ps1
 ```
 
-`Config.ps1` je gitignorovaný — obsahuje thumbprint certifikátu a ID tenantů specifické pro prostředí.
+`Config.ps1` je gitignorovaný — obsahuje thumbprint certifikátu, ID tenantů a e-mailové adresy specifické pro prostředí.
 
 ### 3. Stáhnout/aktualizovat Maester testy
 
@@ -61,18 +61,46 @@ Tento příkaz naplní složku `Tests-Maester/` aktuálními komunitními testy 
 
 ---
 
-## Spuštění auditu
+## Operace
+
+Každý skript lze spustit samostatně — typicky přes Plánovač úloh Windows.
+
+### Audit zákazníků
 
 ```powershell
-. .\Connect.ps1
+.\Invoke-Audit.ps1
 ```
 
-Skript se připojí k home tenantu, načte seznam zákazníků přes GDAP, a pro každého zákazníka postupně:
+Připojí se k home tenantu, načte seznam zákazníků přes GDAP a pro každého zákazníka:
 1. Připojí se k MS Graph a Exchange Online
 2. Spustí nakonfigurovanou sadu testů (`TestSuite.ps1`)
 3. Uloží výsledky do `<ResultsDirectory>\<tenantId>\Test-Results-<timestamp>.json`
 
 Průběh je vidět v konzoli: `[3/25] Customer Name`.
+
+### Export reportu selhání
+
+```powershell
+.\Invoke-Report.ps1
+```
+
+Načte poslední výsledky a exportuje všechna selhání do CSV souboru `failures-<datum>.csv`.
+
+### Odeslání denního souhrnu
+
+```powershell
+.\Send-DailySummary.ps1
+```
+
+Pošle e-mail se souhrnem selhání a změn oproti předchozímu běhu. *(Implementace e-mailu přes MS Graph Send-Mail — zatím stub.)*
+
+### Spustit vše najednou
+
+```powershell
+.\Invoke-All.ps1
+```
+
+Provede audit → export reportu → odeslání e-mailu v jednom průchodu.
 
 ---
 
@@ -87,22 +115,17 @@ Při přidání nového testu ho zahrňte do příslušné skupiny v `TestSuite.
 
 ---
 
-## Analýza výsledků
-
-Po spuštění jsou k dispozici helper funkce z `ResultHelperFunctions.ps1`:
+## Analýza výsledků z konzole
 
 ```powershell
-. .\ResultHelperFunctions.ps1
+. .\Config.ps1
+. .\Functions\Results.ps1
 
 # Všechna selhání napříč zákazníky
-Get-TestsResultsFailed -resultsDirectory $config.ResultsDirectory
+Get-TestsResultsFailed -ResultsDirectory $config.ResultsDirectory
 
 # Co se změnilo oproti předchozímu běhu
-Get-TestsResultsChanged -resultsDirectory $config.ResultsDirectory
-
-# Export do CSV
-Get-TestsResultsFailed -resultsDirectory $config.ResultsDirectory |
-    Export-Csv -Path "failures.csv" -Encoding utf8BOM
+Get-TestsResultsChanged -ResultsDirectory $config.ResultsDirectory
 ```
 
 ---
@@ -110,11 +133,19 @@ Get-TestsResultsFailed -resultsDirectory $config.ResultsDirectory |
 ## Struktura projektu
 
 ```
-Connect.ps1                  # Hlavní skript — orchestrace celého auditu
+Invoke-Audit.ps1             # Vstupní bod: spustí audit všech zákazníků
+Invoke-Report.ps1            # Vstupní bod: exportuje report selhání do CSV
+Send-DailySummary.ps1        # Vstupní bod: pošle denní e-mail
+Invoke-All.ps1               # Vstupní bod: spustí vše v pořadí
+
 Config.ps1                   # Prostředí-specifická konfigurace (gitignored)
 Config.example.ps1           # Šablona konfigurace
 TestSuite.ps1                # Definice testů — které tagy se spouštějí
-ResultHelperFunctions.ps1    # Pomocné funkce pro analýzu výsledků
+
+Functions/
+  Audit.ps1                  # Invoke-TenantAudit + connection helpery
+  Results.ps1                # Analýza výsledků + export
+  Email.ps1                  # Send-DailySummaryEmail (stub)
 
 Tests-PATRON/                # Vlastní testy PATRON-IT
   CAPTemplates/              # Baseline šablony pro Conditional Access policies

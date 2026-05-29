@@ -14,14 +14,16 @@ Install-Module -Name ExchangeOnlineManagement
 Install-Module -Name Maester
 ```
 
-## Running the Audit
+## Entry-Point Scripts
 
-```powershell
-# Copy and fill in Config.example.ps1 → Config.ps1 before running
-. .\Connect.ps1
-```
+Each script is independently callable from Task Scheduler:
 
-`Connect.ps1` loads `Config.ps1`, authenticates to the home tenant with a certificate, discovers GDAP customer tenants, and iterates over them running Maester tests.
+| Script | Purpose |
+|--------|---------|
+| `Invoke-Audit.ps1` | Run full audit of all tenants → save JSON results |
+| `Invoke-Report.ps1` | Export failure report to CSV from saved results |
+| `Send-DailySummary.ps1` | Send daily summary email (MS Graph Send-Mail) |
+| `Invoke-All.ps1` | Run all three operations in sequence |
 
 ## Running Tests (Maester interactive)
 
@@ -41,15 +43,16 @@ Update-MaesterTests
 
 ## Architecture
 
-### Entry Points
+### Key Files
 
 | File | Role |
 |------|------|
-| `Config.ps1` | Runtime config: cert thumbprint, tenant IDs, app ID, result dirs, customer lists — **gitignored, env-specific** |
+| `Config.ps1` | Runtime config: cert thumbprint, tenant IDs, app ID, result dirs, email — **gitignored, env-specific** |
 | `Config.example.ps1` | Configuration template |
 | `TestSuite.ps1` | Which Maester test tags to run — **committed, shared across all environments** |
-| `Connect.ps1` | Main orchestrator: auth → GDAP discovery → per-tenant test loop → JSON output |
-| `ResultHelperFunctions.ps1` | Helper functions for analysing saved JSON results (failed/changed tests) |
+| `Functions/Audit.ps1` | `Invoke-TenantAudit` + connection helpers (`Get-TenantDefaultDomain`, `Write-Result`, etc.) |
+| `Functions/Results.ps1` | `Get-TestsResultsFailed`, `Get-TestsResultsChanged`, `Export-FailureReport` |
+| `Functions/Email.ps1` | `Send-DailySummaryEmail` stub (MS Graph Send-Mail, not yet implemented) |
 
 ### Test Suites
 
@@ -70,14 +73,15 @@ Update-MaesterTests
 ### Data Flow
 
 ```
-Config.ps1 → Connect.ps1
-  └─ Authenticate (certificate) to home tenant
-  └─ List GDAP customers (Graph API)
-  └─ For each customer tenant:
-       ├─ Connect-MgGraph (delegated)
-       ├─ Connect-ExchangeOnline (delegated)
-       ├─ Invoke-Maester -Tag <tags from Config.ps1>
-       └─ Save → test-results/{tenantId}/Test-Results-{timestamp}.json
+Config.ps1 + TestSuite.ps1 → Invoke-Audit.ps1
+  └─ Invoke-TenantAudit (Functions/Audit.ps1)
+       ├─ Authenticate (certificate) to home tenant
+       ├─ List GDAP customers (Graph API)
+       └─ For each customer:
+            ├─ Connect-MgGraph (delegated)
+            ├─ Connect-ExchangeOnline (delegated)
+            ├─ Invoke-Maester -Tag <tags from TestSuite.ps1>
+            └─ Save → test-results/{tenantId}/Test-Results-{timestamp}.json
 ```
 
 ### Test Result JSON Schema

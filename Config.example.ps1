@@ -1,9 +1,11 @@
 $config = [PSCustomObject]@{
-    'CertificateThumbprint' = 'xxx'
-    'HomeTenantId' = 'xxx'
-    'AppId' = 'xxx'
-    'ResultsDirectory' = 'C:\O365Baseline\test-results'
-    'ResultsDirectoryAudit' = 'C:\O365Baseline\test-results-audit'
+    'CertificateThumbprint'  = 'xxx'
+    'HomeTenantId'           = 'xxx'
+    'AppId'                  = 'xxx'
+    'ResultsDirectory'       = 'C:\O365Baseline\test-results'
+    'ResultsDirectoryAudit'  = 'C:\O365Baseline\test-results-audit'
+    'EmailSender'            = 'notifications@yourdomain.cz'
+    'EmailRecipients'        = @('admin@yourdomain.cz')
 }
 
 # Which customers to exclude even if they were detected by GDAP
@@ -15,12 +17,6 @@ $excludedCustomers = @(
 $includedCustomers = @(
     [PSCustomObject]@{
         DisplayName = 'ACME Corp'
-        TenantId = '0b65dafb-3999-41af-a347-16cb9e3c8b2d'
+        TenantId    = '0b65dafb-3999-41af-a347-16cb9e3c8b2d'
     }
 )
-
-$pesterConfig = [PesterConfiguration]@{
-    Should = @{
-        Show = 'Default'
-    }
-}
