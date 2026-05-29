@@ -1,0 +1,48 @@
+. "$PSScriptRoot\Functions\Types.ps1"
+. "$PSScriptRoot\Config.ps1"
+
+Import-Module Maester
+
+$htmlDir = $appConfig.ResultsDirectoryHtml
+
+if (-not (Test-Path $htmlDir)) {
+    New-Item -ItemType Directory -Path $htmlDir | Out-Null
+}
+
+$tenantDirs = Get-ChildItem -Path $appConfig.ResultsDirectory -Directory
+$allResults = [System.Collections.Generic.List[psobject]]::new()
+
+foreach ($tenantDir in $tenantDirs) {
+    $latestFile = Get-ChildItem -Path $tenantDir.FullName -Filter 'Test-Results-*.json' |
+                  Sort-Object LastWriteTime -Descending |
+                  Select-Object -First 1
+
+    if (-not $latestFile) {
+        Write-Warning "No result files in $($tenantDir.Name), skipping."
+        continue
+    }
+
+    $result = (Import-MtMaesterResult -Path $latestFile.FullName)[0]
+
+    $notRunCount        = @($result.Tests | Where-Object { $_.Result -eq 'NotRun' }).Count
+    $result.Tests       = @($result.Tests | Where-Object { $_.Result -ne 'NotRun' })
+    $result.NotRunCount = 0
+    $result.TotalCount  = $result.Tests.Count
+
+    $displayName = if ($result.TenantName) { $result.TenantName } else { $tenantDir.Name }
+    $safeName    = $displayName -replace '[\\/:*?"<>|]', '_'
+    $outputFile  = Join-Path $htmlDir "$safeName.html"
+
+    Write-Host "[$displayName] $($latestFile.Name) -> $outputFile (excluded $notRunCount not-run tests)"
+
+    $result | Get-MtHtmlReport | Out-File -FilePath $outputFile -Encoding UTF8
+    $allResults.Add($result)
+}
+
+if ($allResults.Count -gt 0) {
+    $mergedFile = Join-Path $htmlDir '_summary.html'
+    Write-Host "Generating merged report ($($allResults.Count) tenants) -> $mergedFile"
+    $allResults | Sort-Object TenantName | Merge-MtMaesterResult | Get-MtHtmlReport | Out-File -FilePath $mergedFile -Encoding UTF8
+}
+
+Write-Host "Done. HTML reports saved to: $htmlDir"

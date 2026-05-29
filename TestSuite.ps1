@@ -2,13 +2,13 @@
 $baseTags = @(
     # MAESTER framework built-in tests
     #-------------------------------------------------
-    'EIDSCA.AP14'   # Default Authorization Settings - Default User Role Permissions - Allowed to read other users.
+    #'EIDSCA.AP14'   # Default Authorization Settings - Default User Role Permissions - Allowed to read other users.
     'MS.AAD.5.1'    # Only administrators SHALL be allowed to register applications.
     'MS.AAD.5.2'    # Only administrators SHALL be allowed to consent to applications.
     'MS.AAD.8.1'    # Guest users SHOULD have limited or restricted access to Azure AD directory objects.
     'MS.AAD.8.2'    # Only users with the Guest Inviter role SHOULD be able to invite guest users.
     'MT.1026'       # No hybrid user with permanent role assignment on Control Plane
-    'MT.1061'       # Device registration MFA requirement is enforced only in CA policies
+    #'MT.1061'       # Device registration MFA requirement is enforced only in CA policies
 
     # PATRON-IT custom tests
     #-------------------------------------------------

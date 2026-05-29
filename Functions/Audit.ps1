@@ -42,80 +42,42 @@ function Get-TenantDefaultDomain {
     return (Get-Tenant -TenantId $TenantId).defaultDomainName
 }
 
-function Test-AccessToCustomersGraph {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory)]
-        $Customers,
-        [Parameter(Mandatory)]
-        $Config
-    )
-    foreach ($customer in $Customers) {
-        try {
-            Connect-MgGraph -ClientId $Config.AppId -TenantId $customer.TenantId -CertificateThumbprint $Config.CertificateThumbprint -NoWelcome -ErrorAction Stop | Out-Null
-            $connected = $true
-        }
-        catch { $connected = $false }
-        Write-Result $connected "Connection to: $($customer.DisplayName) ($($customer.TenantId))" | Out-Null
-    }
-}
-
-function Test-AccessToCustomersExchange {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory)]
-        $Customers,
-        [Parameter(Mandatory)]
-        $Config
-    )
-    foreach ($customer in $Customers) {
-        try {
-            $tenantDomain = Get-TenantDefaultDomain $customer.TenantId
-            Connect-ExchangeOnline -AppId $Config.AppId -CertificateThumbprint $Config.CertificateThumbprint -Organization $tenantDomain -ShowBanner:$false -ErrorAction Stop | Out-Null
-            $connected = $true
-        }
-        catch { $connected = $false }
-        Write-Result $connected "Connection to: $($customer.DisplayName) ($($customer.TenantId))" | Out-Null
-    }
-}
-
 function Invoke-TenantAudit {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        $Config,
+        [ConnectionConfig]$ConnectionConfig,
+        [Parameter(Mandatory)]
+        $AppConfig,
+        [Parameter(Mandatory)]
+        $Customers,
         [Parameter(Mandatory)]
         [string[]]$BaseTags,
         [Parameter(Mandatory)]
-        [string[]]$ExchangeTags,
-        [string[]]$ExcludedCustomers = @(),
-        [PSCustomObject[]]$AdditionalCustomers = @()
+        [string[]]$ExchangeTags
     )
-
-    # TODO: Auto clean old results
 
     $pesterConfig = [PesterConfiguration]@{
         Should = @{ Show = 'Default' }
     }
 
-    # Get GDAP customers, apply exclusions and additions
-    Connect-MgGraph -ClientId $Config.AppId -TenantId $Config.HomeTenantId -CertificateThumbprint $Config.CertificateThumbprint -NoWelcome | Out-Null
-    $customers = (Get-MgTenantRelationshipDelegatedAdminRelationship -All | Where-Object Status -eq 'Active').Customer
-    $customers = $customers | Where-Object { $_.TenantId -notin $ExcludedCustomers } | Select-Object DisplayName, TenantId -Unique | Sort-Object DisplayName
-    $customers += $AdditionalCustomers
-
-    $customerCount = $customers.Count
+    $customerCount = $Customers.Count
     $customerIndex = 0
 
-    foreach ($customer in $customers) {
+    foreach ($customer in $Customers) {
         $customerIndex++
         Write-Host "[$customerIndex/$customerCount] $($customer.DisplayName)"
 
         $tenantId = $customer.TenantId
 
+        # Clear all Maester caches
+        Clear-MtDnsCache
+        Clear-MtGraphCache
+        Clear-MtExoCache
+
         # Connect MS Graph
         try {
-            Connect-MgGraph -ClientId $Config.AppId -TenantId $tenantId -CertificateThumbprint $Config.CertificateThumbprint -NoWelcome -ErrorAction Stop | Out-Null
+            Connect-MgGraph -ClientId $ConnectionConfig.AppId -TenantId $tenantId -CertificateThumbprint $ConnectionConfig.CertificateThumbprint -NoWelcome -ErrorAction Stop | Out-Null
         }
         catch {
             Write-Result $false "(MS Graph) Connection to: $($customer.DisplayName) ($tenantId): MS Graph" | Out-Null
@@ -126,13 +88,13 @@ function Invoke-TenantAudit {
         # Connect Exchange Online
         try {
             $tenantDomain = Get-TenantDefaultDomain $tenantId
-            Connect-ExchangeOnline -AppId $Config.AppId -CertificateThumbprint $Config.CertificateThumbprint -Organization $tenantDomain -ShowBanner:$false -ErrorAction Stop | Out-Null
+            Connect-ExchangeOnline -AppId $ConnectionConfig.AppId -CertificateThumbprint $ConnectionConfig.CertificateThumbprint -Organization $tenantDomain -ShowBanner:$false -ErrorAction Stop | Out-Null
             $exchangeConnected = $true
         }
         catch { $exchangeConnected = $false }
         Write-Result $exchangeConnected "(Exchange) Connection to: $($customer.DisplayName) ($tenantId): Exchange Online" | Out-Null
 
-        $outputDirectory = "$($Config.ResultsDirectory)\$tenantId"
+        $outputDirectory = "$($AppConfig.ResultsDirectory)\$tenantId"
         if (!(Test-Path $outputDirectory)) {
             New-Item -Path $outputDirectory -ItemType Directory | Out-Null
         }
@@ -142,11 +104,11 @@ function Invoke-TenantAudit {
         if ($exchangeConnected) { $tags += $ExchangeTags }
 
         try {
-            Invoke-Maester -Tag $tags -OutputJsonFile "$outputDirectory\$outputFilename.json" -PesterConfiguration $pesterConfig -SkipGraphConnect
+            Invoke-Maester -Tag $tags -OutputJsonFile "$outputDirectory\$outputFilename.json" -PesterConfiguration $pesterConfig -SkipGraphConnect -NoLogo
         }
         finally {
             Disconnect-MgGraph | Out-Null
-            if ($exchangeConnected) { Disconnect-ExchangeOnline -Confirm:$false }
+            if ($exchangeConnected) { Disconnect-ExchangeOnline -Confirm:$false | Out-Null }
         }
     }
 }
