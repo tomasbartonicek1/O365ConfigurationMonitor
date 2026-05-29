@@ -1,0 +1,9 @@
+Tests-Maester/
+test-results/
+test-results-audit/
+test-results-demo/
+test-results-temp/
+Config.ps1
+Tests-PATRON/README.md
+Connect-TB.ps1
+Connect-MH.ps1
