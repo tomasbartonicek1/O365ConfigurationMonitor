@@ -5,9 +5,9 @@ $connectionConfig = [ConnectionConfig]@{
 }
 
 $appConfig = [PSCustomObject]@{
-    ResultsDirectory       = 'C:\O365Baseline\test-results'
-    ResultsDirectoryAudit  = 'C:\O365Baseline\test-results-audit'
-    ResultsDirectoryReport = 'C:\O365Baseline\html-reports'
+    ResultsDirectory       = "$PSScriptRoot\results"
+    ResultsDirectoryAudit  = "$PSScriptRoot\results-audit"
+    ResultsDirectoryReport = "$PSScriptRoot\results-report"
     SharePointSiteUrl      = 'https://patronit.sharepoint.com/sites/IT'
     SharePointFolderPath   = 'Shared Documents/M365AuditReports'
     EmailSender            = 'notifications@yourdomain.cz'
