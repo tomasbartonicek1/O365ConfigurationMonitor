@@ -1,3 +1,4 @@
+Import-Module Pester
 . "$ScriptRoot\Functions\Types.ps1"
 . "$ScriptRoot\Config.ps1"
 . "$ScriptRoot\ConfigTestSuite.ps1"
