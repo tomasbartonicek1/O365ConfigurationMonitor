@@ -1,9 +1,9 @@
-. "$PSScriptRoot\Functions\Types.ps1"
-. "$PSScriptRoot\Config.ps1"
+$ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+. "$ScriptRoot\Bootstrap.ps1"
 
 Import-Module Maester
 
-$htmlDir = $appConfig.ResultsDirectoryHtml
+$htmlDir = $appConfig.ResultsDirectoryReport
 
 if (-not (Test-Path $htmlDir)) {
     New-Item -ItemType Directory -Path $htmlDir | Out-Null

@@ -1,0 +1,7 @@
+. "$ScriptRoot\Functions\Types.ps1"
+. "$ScriptRoot\Config.ps1"
+. "$ScriptRoot\ConfigTestSuite.ps1"
+. "$ScriptRoot\Functions\Audit.ps1"
+. "$ScriptRoot\Functions\Customers.ps1"
+. "$ScriptRoot\Functions\Results.ps1"
+. "$ScriptRoot\Functions\Email.ps1"

@@ -5,13 +5,13 @@ $connectionConfig = [ConnectionConfig]@{
 }
 
 $appConfig = [PSCustomObject]@{
-    ResultsDirectory      = 'C:\O365Baseline\test-results'
-    ResultsDirectoryAudit = 'C:\O365Baseline\test-results-audit'
-    ResultsDirectoryHtml  = 'C:\O365Baseline\html-reports'
-    SharePointSiteUrl     = 'https://patronit.sharepoint.com/sites/IT'
-    SharePointFolderPath  = 'Shared Documents/M365AuditReports'
-    EmailSender           = 'notifications@yourdomain.cz'
-    EmailRecipients       = @('admin@yourdomain.cz')
+    ResultsDirectory       = 'C:\O365Baseline\test-results'
+    ResultsDirectoryAudit  = 'C:\O365Baseline\test-results-audit'
+    ResultsDirectoryReport = 'C:\O365Baseline\html-reports'
+    SharePointSiteUrl      = 'https://patronit.sharepoint.com/sites/IT'
+    SharePointFolderPath   = 'Shared Documents/M365AuditReports'
+    EmailSender            = 'notifications@yourdomain.cz'
+    EmailRecipients        = @('admin@yourdomain.cz')
 
     # Customers detected by GDAP to exclude from audit
     ExcludedCustomers     = @(
@@ -25,4 +25,11 @@ $appConfig = [PSCustomObject]@{
             TenantId    = '0b65dafb-3999-41af-a347-16cb9e3c8b2d'
         }
     )
+
+    # URL of CSV file with TenantId→Team mapping (columns: TenantId,Team)
+    # Run Invoke-UpdateTeamMapping.ps1 to refresh the local cache from this URL
+    TeamMappingUrl        = 'https://...'
+    TeamMappingFile       = "$ScriptRoot\team-mapping.json"
+
+    ResultsRetentionDays  = 90   # JSON result files older than this will be deleted by Invoke-CleanupOldReports.ps1
 }

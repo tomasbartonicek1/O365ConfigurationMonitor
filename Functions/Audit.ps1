@@ -53,8 +53,8 @@ function Invoke-TenantAudit {
         $Customers,
         [Parameter(Mandatory)]
         [string[]]$BaseTags,
-        [Parameter(Mandatory)]
-        [string[]]$ExchangeTags
+        [string[]]$ExchangeTags = @(),
+        [string]$TeamMappingFile
     )
 
     $pesterConfig = [PesterConfiguration]@{
@@ -103,12 +103,23 @@ function Invoke-TenantAudit {
         $tags = $BaseTags
         if ($exchangeConnected) { $tags += $ExchangeTags }
 
+        $jsonPath = "$outputDirectory\$outputFilename.json"
         try {
-            Invoke-Maester -Tag $tags -OutputJsonFile "$outputDirectory\$outputFilename.json" -PesterConfiguration $pesterConfig -SkipGraphConnect -NoLogo
+            Invoke-Maester -Tag $tags -OutputJsonFile $jsonPath -PesterConfiguration $pesterConfig -SkipGraphConnect -NoLogo
         }
         finally {
             Disconnect-MgGraph | Out-Null
             if ($exchangeConnected) { Disconnect-ExchangeOnline -Confirm:$false | Out-Null }
+        }
+
+        if ($TeamMappingFile -and (Test-Path $TeamMappingFile) -and (Test-Path $jsonPath)) {
+            $teamMapping = Get-Content $TeamMappingFile -Raw | ConvertFrom-Json
+            $team = $teamMapping.$tenantId
+            if ($team) {
+                $data = Get-Content $jsonPath -Raw | ConvertFrom-Json
+                $data | Add-Member -NotePropertyName 'Team' -NotePropertyValue $team -Force
+                $data | ConvertTo-Json -Depth 10 | Set-Content $jsonPath -Encoding UTF8
+            }
         }
     }
 }

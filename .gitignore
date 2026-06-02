@@ -1,6 +1,9 @@
 /.claude
 /Tests-Maester/
 /results/
-/results-html/
+/results-audit/
+/results-report/
 /Config.ps1
 /Tests-PATRON/README.md
+ConfigEntraTeamMapping.json
+Invoke-MH.ps1

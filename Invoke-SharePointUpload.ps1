@@ -1,5 +1,5 @@
-. "$PSScriptRoot\Functions\Types.ps1"
-. "$PSScriptRoot\Config.ps1"
+$ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+. "$ScriptRoot\Bootstrap.ps1"
 
 Connect-MgGraph -ClientId $connectionConfig.AppId `
                 -TenantId $connectionConfig.HomeTenantId `
@@ -15,11 +15,11 @@ try {
     $driveId = (Invoke-MgGraphRequest -Method GET -Uri "/v1.0/sites/$($site.id)/drive").id
 
     $folder    = $appConfig.SharePointFolderPath.Trim('/')
-    $htmlFiles = Get-ChildItem -Path $appConfig.ResultsDirectoryHtml -Filter '*.html'
+    $files = Get-ChildItem -Path $appConfig.ResultsDirectoryReport | Where-Object { $_.Name -match "\.(xlsx|html)$" }
 
-    Write-Host "Uploading $($htmlFiles.Count) file(s) to $($appConfig.SharePointSiteUrl)/$folder"
+    Write-Host "Uploading $($files.Count) file(s) to $($appConfig.SharePointSiteUrl)/$folder"
 
-    foreach ($file in $htmlFiles) {
+    foreach ($file in $files) {
         $uploadUri = "/v1.0/drives/$driveId/root:/$folder/$($file.Name):/content"
         $body      = [System.IO.File]::ReadAllBytes($file.FullName)
 

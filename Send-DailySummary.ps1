@@ -1,7 +1,5 @@
-. "$PSScriptRoot\Functions\Types.ps1"
-. "$PSScriptRoot\Config.ps1"
-. "$PSScriptRoot\Functions\Results.ps1"
-. "$PSScriptRoot\Functions\Email.ps1"
+$ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+. "$ScriptRoot\Bootstrap.ps1"
 
 $failed  = Get-TestsResultsFailed  -ResultsDirectory $appConfig.ResultsDirectory
 $changed = Get-TestsResultsChanged -ResultsDirectory $appConfig.ResultsDirectory

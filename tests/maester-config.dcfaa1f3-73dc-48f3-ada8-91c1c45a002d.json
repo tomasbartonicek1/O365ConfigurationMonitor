@@ -1,0 +1,10 @@
+{
+  "GlobalSettings": {
+    "EmergencyAccessAccounts": [
+      {
+        "Id": "4bebeeb1-2030-4372-baed-4f5059db5be0",
+        "Type": "User"
+      }
+    ]
+  }
+}

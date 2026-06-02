@@ -7,13 +7,19 @@ function Get-TestsResultsFailed {
     $failedTests = [System.Collections.Generic.List[PSCustomObject]]::new()
     foreach ($directory in (Get-ChildItem $ResultsDirectory -Directory)) {
         $latestJsonFile = Get-ChildItem $directory.FullName -Filter *.json | Sort-Object CreationTimeUtc | Select-Object -Last 1
+        if (-not $latestJsonFile) {
+            Write-Warning "No result files in $($directory.Name), skipping."
+            continue
+        }
         $result = Get-Content ($directory.FullName + '\' + $latestJsonFile.Name) -Raw | ConvertFrom-Json
         $tenantName = $result.TenantName
         foreach ($failedTest in ($result.Tests | Where-Object { $_.Result -eq 'Failed' })) {
             $failedTests.Add([PSCustomObject]@{
-                'Tenant' = $tenantName
-                'Test'   = $failedTest.Name
-                'Result' = $failedTest.Result
+                'Tenant'   = $tenantName
+                'Team'     = $result.Team
+                'Severity' = $failedTest.Severity
+                'Test'     = $failedTest.Name
+                'Result'   = $failedTest.Result
             })
         }
     }
@@ -40,6 +46,8 @@ function Get-TestsResultsChanged {
             foreach ($change in $changes) {
                 $changedTests.Add([PSCustomObject]@{
                     'Tenant'      = $tenantName
+                    'Team'        = $newTest.Team
+                    'Severity'    = $change.Severity
                     'Test'        = $change.Name
                     'PriorResult' = $change.PriorState
                     'NewResult'   = $change.NewState
@@ -55,10 +63,11 @@ function Export-FailureReport {
     param(
         [Parameter(Mandatory)]
         [string]$ResultsDirectory,
-        [string]$OutputPath = ".\failures-$((Get-Date).ToString('yyyy-MM-dd')).csv"
+        [string]$OutputPath = ".\failures-$((Get-Date).ToString('yyyy-MM-dd')).xlsx"
     )
     $failed = Get-TestsResultsFailed -ResultsDirectory $ResultsDirectory
-    $failed | Export-Csv -Path $OutputPath -Encoding utf8BOM -NoTypeInformation
+    $failed | Export-Excel -Path $OutputPath -AutoSize -FreezeTopRow -BoldTopRow `
+        -TableName 'FailedTests' -TableStyle Medium9 -WorksheetName 'Failures'
     Write-Host "Report exported to: $OutputPath ($($failed.Count) failures)"
     return $OutputPath
 }
