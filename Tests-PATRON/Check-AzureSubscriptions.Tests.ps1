@@ -8,6 +8,7 @@ Describe "Checks Azure subscriptions migration policy" -Tag "PATRON.Azure.Check-
     }
 
     It "Baseline: Migration of subscription from and to Azure tenant should be blocked" {
+        Add-MtTestResultDetail -Severity 'Medium'
         if($subscriptionPolicy){
             ($subscriptionPolicy.BlockSubscriptionsIntoTenant -and $subscriptionPolicy.BlockSubscriptionsLeavingTenant) | Should -BeTrue -Because "migration of subscriptions from and to Azure tenant should be blocked."
         }elseif (-not $subscriptionPolicy) {

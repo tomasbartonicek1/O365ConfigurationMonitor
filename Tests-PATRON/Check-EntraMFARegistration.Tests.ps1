@@ -6,6 +6,7 @@ BeforeAll {
 
 Describe "Checks MFA setup status for all licensed and active user accounts" -Tag "PATRON.Entra.Check-MFARegistrationStatus", "PATRON", "Security", "User", "Authentication", "EntraID", "All"{
     It "Baseline: Check MFA registration for all licenced and active user accounts."{
+        Add-MtTestResultDetail -Severity 'Medium'
         $unsecuredUsers = @()
     
         foreach ($user in $unsecuredUsers) {

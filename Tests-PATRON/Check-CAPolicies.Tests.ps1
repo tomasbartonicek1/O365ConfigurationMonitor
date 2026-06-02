@@ -111,6 +111,7 @@
     Context "CA policies check" -Skip:($entraLicense -eq "Free"){
         Describe "Checks CA policy 'BASE: Block legacy auth'" -Tag "PATRON.Entra.Test-PtCaBaseBlockLegacyAuthentication", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Block legacy auth' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Block legacy auth.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: Block legacy auth' should be present and active"
             }
@@ -118,6 +119,7 @@
 
         Describe "Checks CA policy 'BASE: Securing security info registration'" -Tag "PATRON.Entra.Test-PtCaBaseSecureInfoRegistration", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Securing security info registration' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Secure security info registration.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: Securing security info registration' should be present and active"
             }
@@ -125,6 +127,7 @@
 
         Describe "Checks CA policy 'BASE: Block device code flow authentication'" -Tag "PATRON.Entra.Test-PtCaBaseBlockDeviceCodeFlow", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Block device code flow authentication' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Block Device Code Flow Authentication.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: Block device code flow authentication' should be present and active"
             }
@@ -132,6 +135,7 @@
 
         Describe "Checks CA policy 'BASE: Require MFA'" -Tag "PATRON.Entra.Test-PtCaBaseRequireMFA", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Require MFA' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-MFA require.json" | ConvertFrom-Json
                 $result = $false
                 $possibleControls = @(
@@ -152,6 +156,7 @@
 
         Describe "Checks CA policy 'BASE: No persistent session'" -Tag "PATRON.Entra.Test-PtCaBaseNoPersistentSession", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: No persistent session' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-No persistent session.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: No persistent session' should be present and active"
             }
@@ -159,6 +164,7 @@
 
         Describe "Checks CA policy 'BASE: Require MFA and sign-in frequency for admins'" -Tag "PATRON.Entra.Test-PtCaBaseMFAForAdmins", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Require MFA and sign-in frequency for admins' is present and active" {
+                Add-MtTestResultDetail -Severity 'Critical'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Require MFA and sign in frequency for admins.json" | ConvertFrom-Json
                 $CustomComparers = @{
                     'conditions.users.includeRoles' = {
@@ -181,6 +187,7 @@
 
         Describe "Checks CA policy 'BASE: Secure device registration or join'" -Tag "PATRON.Entra.Test-PtCaBaseSecureDeviceRegistration", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" {
             It "Baseline: CA policy 'BASE: Secure device registration or join' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Secure device registration or join.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: Secure device registration or join' should be present and active"
             }
@@ -188,6 +195,7 @@
 
         Describe "Checks device registration MFA control conflicts with Conditional Access policies" -Tag "MT.1061", "Maester", "Security", "CA", "EntraID", "All" {
             It "MT.1061: Device registration MFA control conflicts with Conditional Access policies. See https://maester.dev/docs/tests/MT.1061" -Tag "MT.1061" {
+                Add-MtTestResultDetail -Severity 'Medium'
                 Test-MtDeviceRegistrationMfaConflict | Should -Be $true -Because "there is a conflict between Entra ID settings and Conditional Access policies regarding MFA during device registration."
             }
         }
