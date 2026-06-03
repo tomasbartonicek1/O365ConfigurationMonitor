@@ -1,6 +1,11 @@
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 . "$ScriptRoot\Bootstrap.ps1"
 
+if (-not $appConfig.ResultsRetentionDays -or $appConfig.ResultsRetentionDays -le 0) {
+    Write-Error "ResultsRetentionDays is not configured or is invalid. Aborting cleanup to prevent accidental deletion."
+    exit 1
+}
+
 $cutoff = (Get-Date).AddDays(-$appConfig.ResultsRetentionDays)
 $deleted = 0
 
