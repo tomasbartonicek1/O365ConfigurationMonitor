@@ -113,7 +113,20 @@ Describe "Checks Reset user risk status after on-premises password change" -Tag 
 
 Describe "Checks Breakglass emergency access account presence and role assignment" -Tag "PATRON.Entra.Check-BreakglassAccount", "PATRON", "Security", "User", "Authentication", "EntraID", "All" {
         BeforeAll {
-            $breakGlassAccount = Get-MgUser -Filter "startsWith(userPrincipalName,'breakglass@')" -All
+            $configAccounts = Get-MtMaesterConfigGlobalSetting -SettingName 'EmergencyAccessAccounts'
+            $userAccounts = @($configAccounts | Where-Object { -not $_.Type -or $_.Type -eq 'User' })
+
+            if ($userAccounts.Count -gt 0) {
+                $breakGlassAccount = $userAccounts | ForEach-Object {
+                    if ($_.Id) {
+                        Get-MgUser -UserId $_.Id -ErrorAction SilentlyContinue
+                    } elseif ($_.UserPrincipalName) {
+                        Get-MgUser -Filter "userPrincipalName eq '$($_.UserPrincipalName)'" -All -ErrorAction SilentlyContinue
+                    }
+                } | Where-Object { $_ -ne $null }
+            } else {
+                $breakGlassAccount = Get-MgUser -Filter "startsWith(userPrincipalName,'breakglass@')" -All
+            }
         }
 
         It "Baseline: Breakglass emergency access account is present" {
@@ -127,9 +140,9 @@ Describe "Checks Breakglass emergency access account presence and role assignmen
                 Set-ItResult -Skipped -Because "breakglass emergency access account not found"
             }
 
-            $breakglassUserId = (Get-MgUser -Filter "startsWith(userPrincipalName,'breakglass@')" -All).Id
+            $breakglassUserId = $breakGlassAccount.Id
             $globalAdminRoleId = (Get-MgDirectoryRole -Filter "DisplayName eq 'Global Administrator'").Id
-    
+
             (Get-MgDirectoryRoleMember -DirectoryRoleId $globalAdminRoleId | Where-Object { $_.Id -eq $breakGlassUserId }).Count | Should -BeGreaterThan 0 -Because "breakglass emergency access account should have global administrator role assigned."
         }
 }
