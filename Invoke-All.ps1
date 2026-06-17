@@ -5,5 +5,5 @@ $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 & "$ScriptRoot\Invoke-ReportExcel.ps1"
 & "$ScriptRoot\Invoke-ReportHtml.ps1"
 & "$ScriptRoot\Invoke-SharePointUpload.ps1"
-#& "$ScriptRoot\Send-DailySummary.ps1"
+& "$ScriptRoot\Invoke-DailySummary.ps1"
 & "$ScriptRoot\Invoke-CleanupOldReports.ps1"
