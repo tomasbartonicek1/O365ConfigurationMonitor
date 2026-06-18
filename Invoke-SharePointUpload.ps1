@@ -19,12 +19,28 @@ try {
 
     Write-Host "Uploading $($files.Count) file(s) to $($appConfig.SharePointSiteUrl)/$folder"
 
-    foreach ($file in $files) {
-        $uploadUri = "/v1.0/drives/$driveId/root:/$folder/$($file.Name):/content"
-        $body      = [System.IO.File]::ReadAllBytes($file.FullName)
+    $failedFiles = @()
 
-        Invoke-MgGraphRequest -Method PUT -Uri $uploadUri -Body $body -ContentType 'text/html' | Out-Null
-        Write-Host "  [OK] $($file.Name)"
+    foreach ($file in $files) {
+        $uploadUri   = "/v1.0/drives/$driveId/root:/$folder/$($file.Name):/content"
+        $contentType = if ($file.Extension -eq '.xlsx') {
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        } else {
+            'text/html'
+        }
+        $body = [System.IO.File]::ReadAllBytes($file.FullName)
+
+        try {
+            Invoke-MgGraphRequest -Method PUT -Uri $uploadUri -Body $body -ContentType $contentType | Out-Null
+            Write-Host "  [OK] $($file.Name)"
+        } catch {
+            Write-Warning "  [FAIL] $($file.Name): $_"
+            $failedFiles += $file.Name
+        }
+    }
+
+    if ($failedFiles.Count -gt 0) {
+        Write-Warning "Upload selhal pro $($failedFiles.Count) soubor(ů): $($failedFiles -join ', ')"
     }
 } finally {
     Disconnect-MgGraph | Out-Null
