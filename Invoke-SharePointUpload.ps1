@@ -34,21 +34,6 @@ try {
             Invoke-MgGraphRequest -Method PUT -Uri $uploadUri -Body $body -ContentType $contentType | Out-Null
             Write-Host "  [OK] $($file.Name)"
         } catch {
-            if ($file.Extension -eq '.xlsx') {
-                # Soubor může být checked out – zkusit zahodit checkout a nahrát znovu
-                try {
-                    $itemUri = "/v1.0/drives/$driveId/root:/$folder/$($file.Name)"
-                    $item    = Invoke-MgGraphRequest -Method GET -Uri $itemUri -ErrorAction SilentlyContinue
-                    if ($item.id) {
-                        Invoke-MgGraphRequest -Method POST -Uri "/v1.0/drives/$driveId/items/$($item.id)/discardCheckout" -ErrorAction SilentlyContinue | Out-Null
-                        Invoke-MgGraphRequest -Method PUT -Uri $uploadUri -Body $body -ContentType $contentType | Out-Null
-                        Write-Host "  [OK] $($file.Name) (po zahození checkoutu)"
-                        continue
-                    }
-                } catch {
-                    # retry selhal, bude zaznamenáno níže
-                }
-            }
             Write-Warning "  [FAIL] $($file.Name): $_"
             $failedFiles += $file.Name
         }
