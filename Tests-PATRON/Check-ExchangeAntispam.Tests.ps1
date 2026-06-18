@@ -1,7 +1,7 @@
 BeforeAll{
     $hostedConnectionFilterPolicies = Get-HostedConnectionFilterPolicy
     $hostedContentFilterPolicies = Get-HostedContentFilterPolicy
-    $hostedOutboundSpamFilterPolicies = Get-HostedOutboundSpamFilterPolicy
+    $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy | where Name -eq "Default"
     $antiphishPolicies = Get-AntiPhishPolicy
 
     $antispamPoliciesAllowedSenderDomains = $hostedContentFilterPolicies.AllowedSenders.Sender.Domain
@@ -28,5 +28,14 @@ Describe "Checks no domain exceptions in spam filter policies" -Tag "PATRON.Exch
     It "Baseline: No domain exceptions in spam filter policies" {
         Add-MtTestResultDetail -Severity 'Medium'
         $hostedContentFilterPolicies.AllowedSenderDomains.Count | Should -BeExactly 0 -Because "no domain exceptions should be in spam filter policies."
+    }
+}
+
+Describe "Checks external forwarding settings in outbound antispam or remote domains." -Tag "PATRON.Exchange.Antispam.ExternalForwarding", "PATRON", "Security", "Exchange", "All" {
+    It "Baseline: External forwarding should be disabled in outbound antispam or remote domains settings."{
+        Add-MtTestResultDetail -Severity 'Medium'
+        $antispamStatus = $hostedOutboundSpamFilterPolicy.AutoForwardingMode -in @('On', 'Automatic')
+        $remoteDomainStatus = (Get-RemoteDomain -Identity Default).AutoForwardEnabled -eq $false
+        $antispamStatus -or $remoteDomainStatus | Should -BeTrue -Because "external forwarding should be disabled in outbound antispam or remote domain"
     }
 }

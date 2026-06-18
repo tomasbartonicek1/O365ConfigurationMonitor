@@ -29,11 +29,13 @@ $baseTags = @(
     'PATRON.Entra.Check-DeviceLocalAdminsPolicy'
     'PATRON.Entra.Check-RememberMFADisabled'
     'PATRON.Entra.Check-MFALegacyConfiguredUsers'
+    'PATRON.Entra.Check-DeviceRegistrationPermission'
+    'PATRON.Entra.Check-BitLockerKeysReadRestriction'
+    'PATRON.Entra-TestPtCaPolicies'
 )
 
 # Tagy závislé na Exchange Online — přidají se jen pokud je Exchange Online připojen
 $exchangeTags = @(
-    'MS.EXO.1.1'
     'MS.EXO.3.1'
     'MS.EXO.7.1'
     'MS.EXO.12.1'
@@ -43,4 +45,5 @@ $exchangeTags = @(
     'PATRON.Exchange.Antispam.Check-SpamFilterActions'
     'PATRON.Exchange.Antispam.Check-CompanyDomainSenderException'
     'PATRON.Exchange.Antispam.Check-AllowedSenderDomains'
+    'PATRON.Exchange.Antispam.ExternalForwarding'
 )
