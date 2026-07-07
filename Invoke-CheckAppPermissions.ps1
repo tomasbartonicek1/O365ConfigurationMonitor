@@ -2,6 +2,24 @@ $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 . "$ScriptRoot\Bootstrap.ps1"
 
 $customers  = Get-GdapCustomers -ConnectionConfig $connectionConfig
+
+# Načtení required permissions z app registrace; fallback na Config.ps1 (pro případ starší konfigurace)
+$manifestPerms = Get-AppRegistrationPermissions -AppId $connectionConfig.AppId
+if ($manifestPerms) {
+    $requiredGraphPermissions    = $manifestPerms.GraphPermissions
+    $requiredExchangePermissions = $manifestPerms.ExchangePermissions
+    $permissionsSource = 'app registrace (manifest)'
+} elseif ($appConfig.RequiredGraphPermissions -or $appConfig.RequiredExchangePermissions) {
+    $requiredGraphPermissions    = $appConfig.RequiredGraphPermissions
+    $requiredExchangePermissions = $appConfig.RequiredExchangePermissions
+    $permissionsSource = 'Config.ps1'
+} else {
+    Write-Error "Nepodařilo se načíst požadovaná oprávnění z app registrace (403) a Config.ps1 je neobsahuje. Přidej Application.Read.All do home tenantu, nebo definuj RequiredGraphPermissions v Config.ps1."
+    exit 1
+}
+
+Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+
 $customers  = $customers | Where-Object { $_.TenantId -notin $appConfig.ExcludedCustomers }
 $customers += $appConfig.AdditionalCustomers
 
@@ -9,8 +27,9 @@ $customerCount  = @($customers).Count
 $customerIndex  = 0
 $issueCount     = 0
 
-Write-Host "Required Graph permissions    : $($appConfig.RequiredGraphPermissions -join ', ')"
-Write-Host "Required Exchange permissions : $($appConfig.RequiredExchangePermissions -join ', ')"
+Write-Host "Permissions source            : $permissionsSource"
+Write-Host "Required Graph permissions    : $($requiredGraphPermissions -join ', ')"
+Write-Host "Required Exchange permissions : $($requiredExchangePermissions -join ', ')"
 Write-Host "Required Exchange RBAC roles  : $($appConfig.RequiredExchangeRoles -join ', ')"
 Write-Host "Customers to check            : $customerCount"
 Write-Host ""
@@ -28,8 +47,8 @@ foreach ($customer in $customers) {
 
         $permReport = Get-AppPermissionReport `
             -AppId $connectionConfig.AppId `
-            -RequiredGraphPermissions $appConfig.RequiredGraphPermissions `
-            -RequiredExchangePermissions $appConfig.RequiredExchangePermissions
+            -RequiredGraphPermissions $requiredGraphPermissions `
+            -RequiredExchangePermissions $requiredExchangePermissions
 
         if (-not $permReport.AppFound) {
             $issues.Add('APP NOT FOUND IN TENANT')
