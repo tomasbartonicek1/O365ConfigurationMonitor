@@ -32,4 +32,30 @@ $appConfig = [PSCustomObject]@{
     TeamMappingFile       = "$ScriptRoot\team-mapping.json"
 
     ResultsRetentionDays  = 90   # JSON result files older than this will be deleted by Invoke-CleanupOldReports.ps1
+
+    # Application permissions required in each customer tenant (Graph API)
+    # Run Invoke-CheckAppPermissions.ps1 to audit which customers are missing these
+    RequiredGraphPermissions    = @(
+        'CrossTenantInformation.ReadBasic.All'
+        'Directory.Read.All'
+        'DirectoryRecommendations.Read.All'
+        'IdentityRiskEvent.Read.All'
+        'Policy.Read.All'
+        'PrivilegedAccess.Read.AzureAD'
+        'Reports.Read.All'
+        'RoleEligibilitySchedule.Read.Directory'
+        'RoleManagement.Read.All'
+        'UserAuthenticationMethod.Read.All'
+    )
+
+    # Application permissions required in each customer tenant (Exchange Online)
+    RequiredExchangePermissions = @(
+        'Exchange.ManageAsApp'
+    )
+
+    # Exchange Online RBAC management role assignments required in each customer tenant
+    # These are separate from the Entra ID app permissions above — assigned via New-ManagementRoleAssignment in EXO
+    RequiredExchangeRoles       = @(
+        'View-Only Organization Management'
+    )
 }

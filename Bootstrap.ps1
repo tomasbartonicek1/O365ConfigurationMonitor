@@ -6,3 +6,4 @@ Import-Module Pester
 . "$ScriptRoot\Functions\Customers.ps1"
 . "$ScriptRoot\Functions\Results.ps1"
 . "$ScriptRoot\Functions\Email.ps1"
+. "$ScriptRoot\Functions\AppPermissions.ps1"
