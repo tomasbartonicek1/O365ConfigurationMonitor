@@ -3,6 +3,7 @@
 /results/
 /results-audit/
 /results-report/
+/logs/
 /Config.ps1
 /Tests-PATRON/README.md
 ConfigEntraTeamMapping.json

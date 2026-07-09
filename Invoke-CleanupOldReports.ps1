@@ -26,4 +26,24 @@ foreach ($tenantDir in (Get-ChildItem $appConfig.ResultsDirectory -Directory)) {
     }
 }
 
-Write-Host "Cleanup done: $deleted file(s) older than $($appConfig.ResultsRetentionDays) days deleted."
+Write-Host "Cleanup done: $deleted result file(s) older than $($appConfig.ResultsRetentionDays) days deleted."
+
+$logsDirectory = "$ScriptRoot\logs"
+$deletedLogs = 0
+if (Test-Path $logsDirectory) {
+    foreach ($file in (Get-ChildItem $logsDirectory -Filter 'run-*.log')) {
+        $dateStr = $file.BaseName -replace '^run-', ''
+        try {
+            $fileDate = [datetime]::ParseExact($dateStr, 'yyyy-MM-dd',
+                [System.Globalization.CultureInfo]::InvariantCulture)
+        } catch {
+            Write-Warning "Cannot parse date from log filename: $($file.Name), skipping."
+            continue
+        }
+        if ($fileDate -lt $cutoff) {
+            Remove-Item $file.FullName
+            $deletedLogs++
+        }
+    }
+}
+Write-Host "Cleanup done: $deletedLogs log file(s) older than $($appConfig.ResultsRetentionDays) days deleted."

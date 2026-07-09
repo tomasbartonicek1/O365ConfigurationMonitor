@@ -66,9 +66,9 @@ function Invoke-TenantAudit {
 
     foreach ($customer in $Customers) {
         $customerIndex++
-        Write-Host "[$customerIndex/$customerCount] $($customer.DisplayName)"
-
         $tenantId = $customer.TenantId
+        $exchangeConnected = $false
+        Write-Host "[$customerIndex/$customerCount] $($customer.DisplayName) - $(Get-Date -Format 'HH:mm:ss')"
 
         # Clear all Maester caches
         Clear-MtDnsCache
@@ -81,6 +81,7 @@ function Invoke-TenantAudit {
         }
         catch {
             Write-Result $false "(MS Graph) Connection to: $($customer.DisplayName) ($tenantId): MS Graph" | Out-Null
+            Write-Warning "MS Graph connection error: $_"
             continue
         }
         Write-Result $true "(MS Graph) Connection to: $($customer.DisplayName) ($tenantId): MS Graph" | Out-Null
@@ -91,7 +92,10 @@ function Invoke-TenantAudit {
             Connect-ExchangeOnline -AppId $ConnectionConfig.AppId -CertificateThumbprint $ConnectionConfig.CertificateThumbprint -Organization $tenantDomain -ShowBanner:$false -ErrorAction Stop | Out-Null
             $exchangeConnected = $true
         }
-        catch { $exchangeConnected = $false }
+        catch {
+            $exchangeConnected = $false
+            Write-Warning "Exchange connection error for $($customer.DisplayName): $_"
+        }
         Write-Result $exchangeConnected "(Exchange) Connection to: $($customer.DisplayName) ($tenantId): Exchange Online" | Out-Null
 
         $outputDirectory = "$($AppConfig.ResultsDirectory)\$tenantId"
@@ -107,9 +111,14 @@ function Invoke-TenantAudit {
         try {
             Invoke-Maester -Tag $tags -OutputJsonFile $jsonPath -PesterConfiguration $pesterConfig -SkipGraphConnect -NoLogo
         }
+        catch {
+            Write-Warning "[$customerIndex/$customerCount] Maester failed for $($customer.DisplayName): $_"
+        }
         finally {
-            Disconnect-MgGraph | Out-Null
-            if ($exchangeConnected) { Disconnect-ExchangeOnline -Confirm:$false | Out-Null }
+            try { Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null } catch {}
+            if ($exchangeConnected) {
+                try { Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null } catch {}
+            }
         }
 
         if ($TeamMappingFile -and (Test-Path $TeamMappingFile) -and (Test-Path $jsonPath)) {
