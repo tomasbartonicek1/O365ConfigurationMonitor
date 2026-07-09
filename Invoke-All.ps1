@@ -8,38 +8,30 @@ Start-Transcript -Path $logFile -Append
 $startTime = Get-Date
 Write-Host "=== Invoke-All started at $startTime ==="
 
-$currentStep = $null
 try {
-    $currentStep = 'UpdateTeamMapping'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- UpdateTeamMapping: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-UpdateTeamMapping.ps1"
 
-    $currentStep = 'Audit'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- Audit: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-Audit.ps1"
 
-    $currentStep = 'ReportExcel'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- ReportExcel: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-ReportExcel.ps1"
 
-    $currentStep = 'ReportHtml'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- ReportHtml: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-ReportHtml.ps1"
 
-    $currentStep = 'SharePointUpload'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- SharePointUpload: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-SharePointUpload.ps1"
 
-    $currentStep = 'DailySummary'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- DailySummary: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-DailySummary.ps1"
 
-    $currentStep = 'CleanupOldReports'
-    Write-Host "--- $currentStep: $(Get-Date -Format 'HH:mm:ss') ---"
+    Write-Host "--- CleanupOldReports: $(Get-Date -Format 'HH:mm:ss') ---"
     & "$ScriptRoot\Invoke-CleanupOldReports.ps1"
 }
 catch {
-    Write-Host "=== FATAL ERROR in step '$currentStep': $_ ===" -ForegroundColor Red
+    Write-Host "=== FATAL ERROR: $_ ===" -ForegroundColor Red
 }
 finally {
     $duration = (Get-Date) - $startTime
