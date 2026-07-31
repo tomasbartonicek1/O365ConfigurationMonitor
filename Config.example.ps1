@@ -33,6 +33,11 @@ $appConfig = [PSCustomObject]@{
 
     ResultsRetentionDays  = 90   # JSON result files older than this will be deleted by Invoke-CleanupOldReports.ps1
 
+    # Reports and the daily summary email only consider tenants whose latest result is
+    # within this many hours of the most recent audit across all tenants. Tenants that
+    # dropped out of GDAP (no longer audited) age past this window and stop appearing.
+    ResultFreshnessWindowHours = 24
+
     # Exchange Online RBAC management role assignments required in each customer tenant.
     # These are separate from Graph/EXO API permissions (which are read from the app registration manifest).
     # Assigned via New-ManagementRoleAssignment in Exchange Online.

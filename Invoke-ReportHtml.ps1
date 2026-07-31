@@ -9,18 +9,12 @@ if (-not (Test-Path $htmlDir)) {
     New-Item -ItemType Directory -Path $htmlDir | Out-Null
 }
 
-$tenantDirs = Get-ChildItem -Path $appConfig.ResultsDirectory -Directory
+$freshnessWindow = if ($appConfig.ResultFreshnessWindowHours) { $appConfig.ResultFreshnessWindowHours } else { 24 }
+$freshTenants = Get-FreshTenantResults -ResultsDirectory $appConfig.ResultsDirectory -FreshnessWindowHours $freshnessWindow
 $allResults = [System.Collections.Generic.List[psobject]]::new()
 
-foreach ($tenantDir in $tenantDirs) {
-    $latestFile = Get-ChildItem -Path $tenantDir.FullName -Filter 'Test-Results-*.json' |
-                  Sort-Object LastWriteTime -Descending |
-                  Select-Object -First 1
-
-    if (-not $latestFile) {
-        Write-Warning "No result files in $($tenantDir.Name), skipping."
-        continue
-    }
+foreach ($tenant in $freshTenants) {
+    $latestFile = $tenant.LatestFile
 
     $result = (Import-MtMaesterResult -Path $latestFile.FullName)[0]
 
@@ -29,7 +23,7 @@ foreach ($tenantDir in $tenantDirs) {
     $result.NotRunCount = 0
     $result.TotalCount  = $result.Tests.Count
 
-    $displayName = if ($result.TenantName) { $result.TenantName } else { $tenantDir.Name }
+    $displayName = if ($result.TenantName) { $result.TenantName } else { $tenant.TenantId }
     $safeName    = $displayName -replace '[\\/:*?"<>|]', '_'
     $outputFile  = Join-Path $htmlDir "$safeName.html"
 
