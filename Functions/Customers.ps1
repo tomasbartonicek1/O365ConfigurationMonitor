@@ -1,15 +1,37 @@
+function Invoke-WithRetry {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [scriptblock]$ScriptBlock,
+        [int]$MaxAttempts = 3,
+        [int]$DelaySeconds = 180
+    )
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        try {
+            return & $ScriptBlock
+        }
+        catch {
+            if ($attempt -eq $MaxAttempts) { throw }
+            Write-Warning "Attempt $attempt of $MaxAttempts failed: $_. Retrying in $DelaySeconds seconds..."
+            Start-Sleep -Seconds $DelaySeconds
+        }
+    }
+}
+
 function Get-GdapCustomers {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ConnectionConfig]$ConnectionConfig
     )
-    Connect-MgGraph -ClientId $ConnectionConfig.AppId -TenantId $ConnectionConfig.HomeTenantId `
-        -CertificateThumbprint $ConnectionConfig.CertificateThumbprint -NoWelcome | Out-Null
-    return (Get-MgTenantRelationshipDelegatedAdminRelationship -All |
-        Where-Object Status -eq 'Active').Customer |
-        Select-Object DisplayName, TenantId -Unique |
-        Sort-Object DisplayName
+    return Invoke-WithRetry -ScriptBlock {
+        Connect-MgGraph -ClientId $ConnectionConfig.AppId -TenantId $ConnectionConfig.HomeTenantId `
+            -CertificateThumbprint $ConnectionConfig.CertificateThumbprint -NoWelcome -ErrorAction Stop | Out-Null
+        (Get-MgTenantRelationshipDelegatedAdminRelationship -All -ErrorAction Stop |
+            Where-Object Status -eq 'Active').Customer |
+            Select-Object DisplayName, TenantId -Unique |
+            Sort-Object DisplayName
+    }
 }
 
 function Test-AccessToCustomersGraph {
