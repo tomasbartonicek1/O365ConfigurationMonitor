@@ -84,6 +84,8 @@
                 $baseline.conditions.users.PSObject.Properties.Remove('excludeUsers')
                 $baseline.conditions.users.PSObject.Properties.Remove('excludeGroups')
             }
+
+            write-host $baseline.DisplayName
             # Just to be sure add attribute to check if CAP is enabled
             if (!$baseline.state) {
                 $baseline | Add-Member -MemberType NoteProperty -Name "state" -Value "enabled"
@@ -130,6 +132,22 @@
                 Add-MtTestResultDetail -Severity 'High'
                 $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\BASE-Block Device Code Flow Authentication.json" | ConvertFrom-Json
                 Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'BASE: Block device code flow authentication' should be present and active"
+            }
+        }
+
+        Describe "Checks CA policy 'USERS: Block guests with high sign-in risk'" -Tag "PATRON.Entra.Test-PtCaUsersBlockGuestsHighSignInRisk", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" -Skip:($entraLicense -ne "P2") {
+            It "Baseline: CA policy 'USERS: Block guests with high sign-in risk' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
+                $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\USERS-Block guests with high sign-in risk.json" | ConvertFrom-Json
+                Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'USERS: Block guests with high sign-in risk' should be present and active"
+            }
+        }
+
+        Describe "Checks CA policy 'USERS: Block guests with high user risk'" -Tag "PATRON.Entra.Test-PtCaUsersBlockGuestsHighUserRisk", "PATRON.Entra-TestPtCaPolicies", "PATRON", "Security", "CA", "EntraID", "All" -Skip:($entraLicense -ne "P2") {
+            It "Baseline: CA policy 'USERS: Block guests with high user risk' is present and active" {
+                Add-MtTestResultDetail -Severity 'High'
+                $baseline = Get-Content ".\Tests-PATRON\CAPTemplates\USERS-Block guests with high user risk.json" | ConvertFrom-Json
+                Test-PtCaForBaseline $baseline | Should -BeTrue -Because "CA policy 'USERS: Block guests with high user risk' should be present and active"
             }
         }
 
@@ -199,4 +217,5 @@
                 Test-MtDeviceRegistrationMfaConflict | Should -Be $true -Because "there is a conflict between Entra ID settings and Conditional Access policies regarding MFA during device registration."
             }
         }
+
     }
