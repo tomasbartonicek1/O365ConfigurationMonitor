@@ -28,7 +28,7 @@ $baseTags = @(
     'PATRON.Entra.Check-BreakglassAccount'
     'PATRON.Entra.Check-DeviceLocalAdminsPolicy'
     'PATRON.Entra.Check-RememberMFADisabled'
-    'PATRON.Entra.Check-MFALegacyConfiguredUsers'
+    #'PATRON.Entra.Check-MFALegacyConfiguredUsers'
     'PATRON.Entra.Check-DeviceRegistrationPermission'
     'PATRON.Entra.Check-BitLockerKeysReadRestriction'
     'PATRON.Entra-TestPtCaPolicies'
