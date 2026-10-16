@@ -45,6 +45,13 @@ Describe "Checks Entra ID BitLocker keys read restriction for users" -Tag "PATRO
     }
 }
 
+Describe "Checks Entra ID agent identity blueprints registration policy" -Tag "PATRON.Entra.Check-AgentIdentityBlueprintsRegistrationPolicy", "PATRON", "Security", "User", "Agents", "EntraID", "All" {
+    It "Baseline: Users can not register agent identity blueprints" {
+        Add-MtTestResultDetail -Severity 'Medium'
+        $authorizationPolicy.DefaultUserRolePermissions.allowedToCreateAgentIdentityBlueprints | Should -BeFalse -Because "users should not register agent identity blueprints"
+    }
+}
+
 Describe "Checks Entra ID application registration policy" -Tag "PATRON.Entra.Check-AppRegistrationPolicy", "PATRON", "Security", "User", "Application", "EntraID", "All" {
     It "Baseline: Users can not register Entra ID applications" {
         Add-MtTestResultDetail -Severity 'High'

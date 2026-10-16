@@ -32,6 +32,7 @@ $baseTags = @(
     'PATRON.Entra.Check-DeviceRegistrationPermission'
     'PATRON.Entra.Check-BitLockerKeysReadRestriction'
     'PATRON.Entra-TestPtCaPolicies'
+    'PATRON.Entra.Check-AgentIdentityBlueprintsRegistrationPolicy'
 )
 
 # Tagy závislé na Exchange Online — přidají se jen pokud je Exchange Online připojen
