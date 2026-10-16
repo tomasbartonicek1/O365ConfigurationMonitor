@@ -1,5 +1,6 @@
 BeforeAll {
     $authorizationPolicy = Get-MgPolicyAuthorizationPolicy
+    $authorizationPolicyBeta = Get-MgBetaPolicyAuthorizationPolicy
     $deviceRegistrationPolicy = Get-MgBetaPolicyDeviceRegistrationPolicy
     $deviceJoinPolicy = $deviceRegistrationPolicy.AzureAdJoin.AllowedToJoin.AdditionalProperties
     $deviceJoinPermission = $deviceJoinPolicy.'@odata.type'
@@ -48,7 +49,7 @@ Describe "Checks Entra ID BitLocker keys read restriction for users" -Tag "PATRO
 Describe "Checks Entra ID agent identity blueprints registration policy" -Tag "PATRON.Entra.Check-AgentIdentityBlueprintsRegistrationPolicy", "PATRON", "Security", "User", "Agents", "EntraID", "All" {
     It "Baseline: Users can not register agent identity blueprints" {
         Add-MtTestResultDetail -Severity 'Medium'
-        $authorizationPolicy.DefaultUserRolePermissions.allowedToCreateAgentIdentityBlueprints | Should -BeFalse -Because "users should not register agent identity blueprints"
+        $authorizationPolicyBeta.DefaultUserRolePermissions.AdditionalProperties.allowedToCreateAgentIdentityBlueprints | Should -BeFalse -Because "users should not register agent identity blueprints"
     }
 }
 
