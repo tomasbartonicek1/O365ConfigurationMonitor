@@ -3,11 +3,13 @@ $baseTags = @(
     # MAESTER framework built-in tests
     #-------------------------------------------------
     #'EIDSCA.AP14'   # Default Authorization Settings - Default User Role Permissions - Allowed to read other users.
-    'MS.AAD.5.1'    # Only administrators SHALL be allowed to register applications.
-    'MS.AAD.5.2'    # Only administrators SHALL be allowed to consent to applications.
-    'MS.AAD.8.1'    # Guest users SHOULD have limited or restricted access to Azure AD directory objects.
-    'MS.AAD.8.2'    # Only users with the Guest Inviter role SHOULD be able to invite guest users.
+    'CISA.MS.AAD.5.1'    # Only administrators SHALL be allowed to register applications.
+    'CISA.MS.AAD.5.2'    # Only administrators SHALL be allowed to consent to applications.
+    'CISA.MS.AAD.8.1'    # Guest users SHOULD have limited or restricted access to Azure AD directory objects.
+    'CISA.MS.AAD.8.2'    # Only users with the Guest Inviter role SHOULD be able to invite guest users.
     'MT.1026'       # No hybrid user with permanent role assignment on Control Plane
+    'MT.1225'       # Only administrators SHALL be allowed to register agent identity blueprints.
+    'MT.1186'       # Assignment required for first-party high-privileged management applications
     #'MT.1061'       # Device registration MFA requirement is enforced only in CA policies
 
     # PATRON-IT custom tests
@@ -32,17 +34,16 @@ $baseTags = @(
     'PATRON.Entra.Check-DeviceRegistrationPermission'
     'PATRON.Entra.Check-BitLockerKeysReadRestriction'
     'PATRON.Entra-TestPtCaPolicies'
-    'PATRON.Entra.Check-AgentIdentityBlueprintsRegistrationPolicy'
 )
 
 # Tagy závislé na Exchange Online — přidají se jen pokud je Exchange Online připojen
 $exchangeTags = @(
-    'MS.EXO.3.1'
-    'MS.EXO.7.1'
-    'MS.EXO.12.1'
-    'MS.EXO.12.2'
-    'MS.EXO.13.1'
-    'MS.EXO.17.1'
+    'CISA.MS.EXO.3.1'
+    'CISA.MS.EXO.7.1'
+    'CISA.MS.EXO.12.1'
+    'CISA.MS.EXO.12.2'
+    'CISA.MS.EXO.13.1'
+    'CISA.MS.EXO.17.1'
     'PATRON.Exchange.Antispam.Check-SpamFilterActions'
     'PATRON.Exchange.Antispam.Check-CompanyDomainSenderException'
     'PATRON.Exchange.Antispam.Check-AllowedSenderDomains'
